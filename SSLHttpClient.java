@@ -85,17 +85,23 @@ public class SSLHttpClient {
 	}
 
 	private SSLSocketFactory sslSocketFactory;
-	private KeyManagerFactory keyManagerFactory;
 	private java.security.KeyStore.Entry keyEntry;
 
 	public SSLHttpClient() throws Exception {
-		keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		char[] clientPassword = new char[] {};
 
 		initClientKeyStore();
 		TrustManager[] trustAnyCerts = initTrustStore();
 
+		KeyStore keyStore = KeyStore.getInstance("JCEKS");
+		keyStore.load(null, null);
+		keyStore.setEntry("0", keyEntry, new KeyStore.PasswordProtection(clientPassword));
+
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		kmf.init(keyStore, clientPassword);
+
 		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(keyManagerFactory.getKeyManagers(), trustAnyCerts, new SecureRandom());
+		sslContext.init(kmf.getKeyManagers(), trustAnyCerts, new SecureRandom());
 		sslSocketFactory = sslContext.getSocketFactory();
 	}
 
@@ -150,14 +156,9 @@ public class SSLHttpClient {
 		}
 
 		// try to pick that key
-		try {
-			keyEntry = keyStore.getEntry(clientAlias, new KeyStore.PasswordProtection(clientPassword));
-			if (keyEntry == null) {
-				throw new IllegalArgumentException("Incorrect password or invalid key!");
-			}
-			keyManagerFactory.init(keyStore, clientPassword);
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Incorrect password or invalid key!", e);
+		keyEntry = keyStore.getEntry(clientAlias, new KeyStore.PasswordProtection(clientPassword));
+		if (keyEntry == null) {
+			throw new IllegalArgumentException("Incorrect password or invalid key!");
 		}
 	}
 
