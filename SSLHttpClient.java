@@ -86,22 +86,16 @@ public class SSLHttpClient {
 
 	private SSLSocketFactory sslSocketFactory;
 	private java.security.KeyStore.Entry keyEntry;
+	private KeyManagerFactory keyManagerFactory;
 
 	public SSLHttpClient() throws Exception {
-		char[] clientPassword = new char[] {};
+		keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
 		initClientKeyStore();
 		TrustManager[] trustAnyCerts = initTrustStore();
-
-		KeyStore keyStore = KeyStore.getInstance("JCEKS");
-		keyStore.load(null, null);
-		keyStore.setEntry("0", keyEntry, new KeyStore.PasswordProtection(clientPassword));
-
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(keyStore, clientPassword);
-
+		
 		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(kmf.getKeyManagers(), trustAnyCerts, new SecureRandom());
+		sslContext.init(keyManagerFactory.getKeyManagers(), trustAnyCerts, new SecureRandom());
 		sslSocketFactory = sslContext.getSocketFactory();
 	}
 
@@ -160,6 +154,8 @@ public class SSLHttpClient {
 		if (keyEntry == null) {
 			throw new IllegalArgumentException("Incorrect password or invalid key!");
 		}
+		
+		keyManagerFactory.init(keyStore, clientPassword);
 	}
 
 	/**
