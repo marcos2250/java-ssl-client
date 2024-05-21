@@ -106,7 +106,7 @@ public class BCSSLHttpClient {
         } else {
             try {
                 provider = (BouncyCastleProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-                jsseProvider = (BouncyCastleJsseProvider) Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+                jsseProvider = (BouncyCastleJsseProvider) Security.getProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
             } catch (Exception e) {
                 initializeBcProvider();
             }
@@ -131,6 +131,7 @@ public class BCSSLHttpClient {
         jsseProvider = new BouncyCastleJsseProvider(provider);        
         // put BC providers in runtime context
         Security.addProvider(provider);
+        Security.addProvider(jsseProvider);
     }
     
     private KeyStore initClientKeyStore() throws Exception {
